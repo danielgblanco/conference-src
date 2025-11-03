@@ -1,0 +1,4 @@
+// Root project configuration for conference demos
+// Each subproject has its own build.gradle with specific configurations
+
+// This is intentionally minimal - each conference demo is independent

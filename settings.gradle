@@ -1,0 +1,5 @@
+rootProject.name = 'conference-src'
+
+// Include all conference demo projects
+include 'kcd-uk-2025'
+include 'kubecon-na-2025'

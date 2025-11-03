@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // OpenTelemetry API for manual instrumentation
+    implementation 'io.opentelemetry:opentelemetry-api:1.44.1'
+    implementation 'io.opentelemetry:opentelemetry-context:1.44.1'
+
+    // OpenTelemetry annotations for declarative spans
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.10.0'
+
+    // SLF4J for logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+application {
+    mainClass = 'com.example.tracesplitting.TraceSplittingDemo'
+}
+
+// Task to download the OpenTelemetry Java agent
+task downloadOtelAgent {
+    def agentVersion = '2.10.0'
+    def agentFile = file("${buildDir}/opentelemetry-javaagent.jar")
+
+    outputs.file(agentFile)
+
+    doLast {
+        if (!agentFile.exists()) {
+            println "Downloading OpenTelemetry Java agent ${agentVersion}..."
+            agentFile.parentFile.mkdirs()
+            def agentUrl = "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${agentVersion}/opentelemetry-javaagent.jar"
+            new URL(agentUrl).withInputStream { input ->
+                agentFile.withOutputStream { output ->
+                    output << input
+                }
+            }
+            println "Downloaded to ${agentFile.absolutePath}"
+        } else {
+            println "Agent already exists at ${agentFile.absolutePath}"
+        }
+    }
+}
+
+// Make run task depend on downloading the agent
+tasks.named('run') {
+    dependsOn downloadOtelAgent
+
+    // Configure JVM args for OpenTelemetry
+    def agentPath = file("${buildDir}/opentelemetry-javaagent.jar").absolutePath
+    def licenseKey = System.getenv('NEW_RELIC_LICENSE_KEY') ?: 'YOUR_LICENSE_KEY'
+
+    jvmArgs = [
+        "-javaagent:${agentPath}",
+        "-Dotel.service.name=trace-splitting-demo",
+        "-Dotel.exporter.otlp.endpoint=https://otlp.nr-data.net:4318",
+        "-Dotel.exporter.otlp.headers=api-key=${licenseKey}",
+        "-Dotel.metrics.exporter=none",
+        "-Dotel.logs.exporter=none"
+    ]
+}
