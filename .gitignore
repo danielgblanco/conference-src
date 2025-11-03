@@ -1,3 +1,12 @@
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+.idea
+
+### Mac OS ###
+.DS_Store
+
 # Compiled class file
 *.class
 
@@ -12,6 +21,7 @@
 
 # Package Files #
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear

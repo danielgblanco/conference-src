@@ -1,0 +1,89 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.opentelemetry:opentelemetry-api:1.42.1'
+    implementation 'io.opentelemetry:opentelemetry-sdk:1.42.1'
+    implementation 'io.opentelemetry:opentelemetry-sdk-metrics:1.42.1'
+    implementation 'io.opentelemetry:opentelemetry-sdk-logs:1.42.1'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.42.1'
+    implementation 'io.opentelemetry:opentelemetry-exporter-logging:1.42.1'
+}
+
+application {
+    mainClass = 'KcdEdinburgh'
+}
+
+// Configuration for OpenTelemetry Java agent
+def otelAgentVersion = '2.9.0'
+def otelAgentUrl = "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${otelAgentVersion}/opentelemetry-javaagent.jar"
+def otelAgentFile = file("${buildDir}/agents/opentelemetry-javaagent.jar")
+
+task downloadOtelAgent {
+    description = 'Downloads the OpenTelemetry Java agent'
+    outputs.file otelAgentFile
+    doLast {
+        otelAgentFile.parentFile.mkdirs()
+        if (!otelAgentFile.exists()) {
+            println "Downloading OpenTelemetry Java agent v${otelAgentVersion}..."
+            new URL(otelAgentUrl).withInputStream { inputStream ->
+                otelAgentFile.withOutputStream { outputStream ->
+                    outputStream << inputStream
+                }
+            }
+            println "OpenTelemetry Java agent downloaded to: ${otelAgentFile}"
+        } else {
+            println "OpenTelemetry Java agent already exists at: ${otelAgentFile}"
+        }
+    }
+}
+
+run {
+    dependsOn downloadOtelAgent
+    jvmArgs = [
+        "-javaagent:${otelAgentFile.absolutePath}",
+        "-Dotel.service.name=kcd-demo",
+        "-Dotel.exporter.otlp.endpoint=http://localhost:4318"
+    ]
+
+    doFirst {
+        println "Running with OpenTelemetry Java agent: ${otelAgentFile.absolutePath}"
+        println "Sending telemetry to OTLP collector at http://localhost:4318"
+    }
+}
+
+// Task to run with console output for telemetry data
+task runWithTelemetry(type: JavaExec) {
+    dependsOn classes, downloadOtelAgent
+    mainClass = 'KcdEdinburgh'
+    classpath = sourceSets.main.runtimeClasspath
+    jvmArgs = [
+        "-javaagent:${otelAgentFile.absolutePath}",
+        "-Dotel.service.name=kcd-demo",
+        "-Dotel.service.version=1.0.0",
+        "-Dotel.exporter.otlp.endpoint=http://localhost:4318",
+        "-Dotel.traces.exporter=otlp",
+        "-Dotel.metrics.exporter=otlp",
+        "-Dotel.logs.exporter=otlp",
+        "-Dotel.instrumentation.common.default-enabled=false"
+    ]
+
+    doFirst {
+        println "Running with OpenTelemetry Java agent: ${otelAgentFile.absolutePath}"
+        println "Sending telemetry to OTLP collector at http://localhost:4318"
+    }
+}
