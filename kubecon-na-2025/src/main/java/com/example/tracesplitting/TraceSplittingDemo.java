@@ -80,6 +80,10 @@ public class TraceSplittingDemo {
             Thread.currentThread().interrupt();
             logger.error("Demo interrupted", e);
         } finally {
+            // Shutdown schedulers
+            WithoutTraceSplitting.shutdown();
+            WithTraceSplitting.shutdown();
+
             // Give time for spans to flush
             try {
                 Thread.sleep(2000);
