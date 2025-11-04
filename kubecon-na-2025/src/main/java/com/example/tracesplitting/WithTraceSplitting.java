@@ -25,8 +25,8 @@ public class WithTraceSplitting {
         scheduler.schedule(() -> {
             // Create a NEW root span (not a child) with a link to the parent span
             Span asyncSpan = tracer.spanBuilder("async-operation-with-split")
-                    .addLink(Span.current().getSpanContext()) // Link to the original parent context
-                    .setNoParent() // Explicitly make this a root span
+                    .addLink(Span.current().getSpanContext())
+                    .setNoParent()
                     .startSpan();
 
             try (Scope scope = asyncSpan.makeCurrent()) {
