@@ -4,7 +4,7 @@ This demo shows the importance of splitting traces for fire-and-forget async ope
 
 ## Scenario
 
-You have an API that triggers async background work but doesn't wait for it. The async work may take a while to even START due to executor queue backlog (10 seconds in this demo).
+You have an API that triggers async background work but doesn't wait for it. The async work is scheduled to run after a delay (10 seconds in this demo), simulating deferred background processing.
 
 ## The Problem (Example 1: WITHOUT Trace Splitting)
 

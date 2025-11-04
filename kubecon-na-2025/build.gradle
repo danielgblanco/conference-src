@@ -68,7 +68,8 @@ tasks.named('run') {
     jvmArgs = [
         "-javaagent:${agentPath}",
         "-Dotel.service.name=trace-splitting-demo",
-        "-Dotel.exporter.otlp.endpoint=https://otlp.nr-data.net:4318",
+        "-Dotel.exporter.otlp.protocol=grpc",
+        "-Dotel.exporter.otlp.endpoint=https://otlp.nr-data.net:4317",
         "-Dotel.exporter.otlp.headers=api-key=${licenseKey}",
         "-Dotel.metrics.exporter=none",
         "-Dotel.logs.exporter=none"

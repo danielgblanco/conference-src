@@ -80,7 +80,7 @@ public class TraceSplittingDemo {
             Thread.currentThread().interrupt();
             logger.error("Demo interrupted", e);
         } finally {
-            // Shutdown executors
+            // Shutdown schedulers
             WithoutTraceSplitting.shutdown();
             WithTraceSplitting.shutdown();
 
